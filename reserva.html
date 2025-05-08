@@ -215,7 +215,6 @@
     <div id="total">Total: R$ 0,00</div>
     <button type="submit">Reservar</button>
   </form>
-</body>
 <script type="module">
     import { get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -388,5 +387,7 @@ if (totalMinutos < 420 || totalMinutos >= 930) {
   aviso.innerHTML = "⏰ O sistema de reservas funciona entre <strong>07:00 e 15:30</strong>. Tente novamente nesse horário!";
   document.body.appendChild(aviso);
 }
-  </script>
+
+ </script>
+</body>
 </html>
