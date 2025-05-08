@@ -4,182 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reserva de Mesas - Traços Culturais</title>
-  <script type="module">
-    import { get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCmuuPAX68dOcESWMFdynI56j_GYkosEmg",
-      authDomain: "reservas-tracos-culturais.firebaseapp.com",
-      databaseURL: "https://reservas-tracos-culturais-default-rtdb.firebaseio.com",
-      projectId: "reservas-tracos-culturais",
-      storageBucket: "reservas-tracos-culturais.appspot.com",
-      messagingSenderId: "53243907823",
-      appId: "1:53243907823:web:1eee06470fe6554f0b551a"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const reservas = {};
-    const selecionadas = new Set();
-    const totalMesas = 120;
-
-    const mesasContainer = document.getElementById("mesas");
-    const form = document.getElementById("formReserva");
-    const cadeirasInput = document.getElementById("cadeirasExtras");
-    const totalDiv = document.getElementById("total");
-
-    function atualizarTotal() {
-      const cadeirasExtras = parseInt(cadeirasInput.value || 0);
-      const valor = selecionadas.size * 120 + cadeirasExtras * 10;
-      totalDiv.textContent = `Total: R$ ${valor.toFixed(2).replace('.', ',')}`;
-    }
-
-    function atualizarGrid() {
-  mesasContainer.innerHTML = "";
-  for (let i = 0; i < totalMesas; i++) {
-    const posicao = i % 6;
-
-    // espaço central após 3 mesas
-    if (posicao === 3) {
-      const espaco = document.createElement("div");
-      espaco.className = "mesa espaco";
-      mesasContainer.appendChild(espaco);
-    }
-
-    const numero = (i + 1).toString().padStart(2, '0');
-    const div = document.createElement("div");
-    div.textContent = numero;
-    div.className = "mesa";
-
-    if (reservas[numero]) {
-      div.classList.add("reservada");
-      div.title = `Reservado por: ${reservas[numero].aluno} - ${reservas[numero].turma} (Resp: ${reservas[numero].nome})`;
-    } else {
-      if (selecionadas.has(numero)) div.classList.add("selecionada");
-      div.addEventListener("click", () => {
-        if (selecionadas.has(numero)) selecionadas.delete(numero);
-        else selecionadas.add(numero);
-        atualizarGrid();
-        atualizarTotal();
-      });
-    }
-
-    mesasContainer.appendChild(div);
-  }
-}
-
-    onValue(ref(db, "reservas"), (snapshot) => {
-      Object.assign(reservas, snapshot.val() || {});
-      atualizarGrid();
-    });
-
-    cadeirasInput.addEventListener("input", atualizarTotal);
-
-    
-    form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const aluno = document.getElementById("aluno").value;
-  const turma = document.getElementById("turma").value;
-  const nome = document.getElementById("nome").value;
-  const cadeirasExtras = parseInt(cadeirasInput.value);
-  const mesasSelecionadas = Array.from(selecionadas);
-
-  if (cadeirasExtras > 2) {
-    alert("Só é permitido reservar no máximo 2 cadeiras extras.");
-    return;
-  }
-  if (mesasSelecionadas.length === 0) {
-    alert("Você precisa selecionar pelo menos uma mesa.");
-    return;
-  }
-
-  const jaReservadas = mesasSelecionadas.filter(m => reservas[m]);
-  if (jaReservadas.length > 0) {
-    alert("Mesas já reservadas: " + jaReservadas.join(", "));
-    return;
-  }
-
-  const agora = new Date();
-  const valorTotal = mesasSelecionadas.length * 120 + cadeirasExtras * 10;
-
-  for (const mesa of mesasSelecionadas) {
-    await set(ref(db, `reservas/${mesa}`), {
-      aluno,
-      turma,
-      nome,
-      cadeirasExtras,
-      valorTotal,
-      mesasSelecionadas,
-      horario: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      data: agora.toLocaleDateString('pt-BR')
-    });
-  }
-
-  mostrarModalPix(valorTotal, aluno, turma, nome, cadeirasExtras, mesasSelecionadas);
-
-  selecionadas.clear();
-  form.reset();
-  atualizarTotal();
-});
-
-
-
-
-
-    atualizarTotal();
-
-    let mensagemWhatsApp = "";
-window.mostrarModalPix = function(valor, aluno, turma, nome, cadeirasExtras, mesasSelecionadas) {
-      document.getElementById("pixValor").innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
-      mensagemWhatsApp = `Olá!%0AGostaria de confirmar a reserva para o evento Traços Culturais.%0A%0AAluno: ${aluno}%0ATurma: ${turma}%0AResponsável: ${nome}%0AMesas: ${mesasSelecionadas.join(", ")}%0ACadeiras Extras: ${cadeirasExtras}%0AValor Total: R$ ${valor.toFixed(2).replace('.', ',')}`;
-document.getElementById("pixModal").style.display = "flex";
-    }
-
-    window.fecharModal = function() {
-      document.getElementById("pixModal").style.display = "none";
-    }
-
-    window.enviarWhatsapp = function() {
-  window.open(`https://wa.me/5571997249766?text=${mensagemWhatsApp}`, '_blank');
-};
-
-window.copiarChavePix = function() {
-      navigator.clipboard.writeText("45.701.401/0001-07").then(() => {
-        alert("Chave Pix copiada!");
-      });
-    }
-
-    const agora = new Date();
-const hora = agora.getHours();
-const minutos = agora.getMinutes();
-
-
-
-// Convertendo hora e minuto para minutos totais do dia
-const totalMinutos = hora * 60 + minutos;
-
-// 07:00 = 420 minutos / 15:30 = 930 minutos
-if (totalMinutos < 420 || totalMinutos >= 930) {
-  // Oculta a grid e o formulário
-  mesasContainer.style.display = "none";
-  form.style.display = "none";
-
-  // Cria e exibe mensagem de aviso
-  const aviso = document.createElement("div");
-  aviso.style.color = "white";
-  aviso.style.textAlign = "center";
-  aviso.style.marginTop = "50px";
-  aviso.style.fontSize = "1.2rem";
-  aviso.innerHTML = "⏰ O sistema de reservas funciona entre <strong>07:00 e 15:30</strong>. Tente novamente nesse horário!";
-  document.body.appendChild(aviso);
-}
-
-
-
-  </script>
   <style>
 @media (max-width: 480px) { body { padding: 10px; } form { padding: 15px; } .grid { gap: 4px; } }
 .modal {
@@ -392,4 +216,177 @@ if (totalMinutos < 420 || totalMinutos >= 930) {
     <button type="submit">Reservar</button>
   </form>
 </body>
+<script type="module">
+    import { get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCmuuPAX68dOcESWMFdynI56j_GYkosEmg",
+      authDomain: "reservas-tracos-culturais.firebaseapp.com",
+      databaseURL: "https://reservas-tracos-culturais-default-rtdb.firebaseio.com",
+      projectId: "reservas-tracos-culturais",
+      storageBucket: "reservas-tracos-culturais.appspot.com",
+      messagingSenderId: "53243907823",
+      appId: "1:53243907823:web:1eee06470fe6554f0b551a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const reservas = {};
+    const selecionadas = new Set();
+    const totalMesas = 120;
+
+    const mesasContainer = document.getElementById("mesas");
+    const form = document.getElementById("formReserva");
+    const cadeirasInput = document.getElementById("cadeirasExtras");
+    const totalDiv = document.getElementById("total");
+
+    function atualizarTotal() {
+      const cadeirasExtras = parseInt(cadeirasInput.value || 0);
+      const valor = selecionadas.size * 120 + cadeirasExtras * 10;
+      totalDiv.textContent = `Total: R$ ${valor.toFixed(2).replace('.', ',')}`;
+    }
+
+    function atualizarGrid() {
+  mesasContainer.innerHTML = "";
+  for (let i = 0; i < totalMesas; i++) {
+    const posicao = i % 6;
+
+    // espaço central após 3 mesas
+    if (posicao === 3) {
+      const espaco = document.createElement("div");
+      espaco.className = "mesa espaco";
+      mesasContainer.appendChild(espaco);
+    }
+
+    const numero = (i + 1).toString().padStart(2, '0');
+    const div = document.createElement("div");
+    div.textContent = numero;
+    div.className = "mesa";
+
+    if (reservas[numero]) {
+      div.classList.add("reservada");
+      div.title = `Reservado por: ${reservas[numero].aluno} - ${reservas[numero].turma} (Resp: ${reservas[numero].nome})`;
+    } else {
+      if (selecionadas.has(numero)) div.classList.add("selecionada");
+      div.addEventListener("click", () => {
+        if (selecionadas.has(numero)) selecionadas.delete(numero);
+        else selecionadas.add(numero);
+        atualizarGrid();
+        atualizarTotal();
+      });
+    }
+
+    mesasContainer.appendChild(div);
+  }
+}
+
+    onValue(ref(db, "reservas"), (snapshot) => {
+      Object.assign(reservas, snapshot.val() || {});
+      atualizarGrid();
+    });
+
+    cadeirasInput.addEventListener("input", atualizarTotal);
+
+    
+    form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const aluno = document.getElementById("aluno").value;
+  const turma = document.getElementById("turma").value;
+  const nome = document.getElementById("nome").value;
+  const cadeirasExtras = parseInt(cadeirasInput.value);
+  const mesasSelecionadas = Array.from(selecionadas);
+
+  if (cadeirasExtras > 2) {
+    alert("Só é permitido reservar no máximo 2 cadeiras extras.");
+    return;
+  }
+  if (mesasSelecionadas.length === 0) {
+    alert("Você precisa selecionar pelo menos uma mesa.");
+    return;
+  }
+
+  const jaReservadas = mesasSelecionadas.filter(m => reservas[m]);
+  if (jaReservadas.length > 0) {
+    alert("Mesas já reservadas: " + jaReservadas.join(", "));
+    return;
+  }
+
+  const agora = new Date();
+  const valorTotal = mesasSelecionadas.length * 120 + cadeirasExtras * 10;
+
+  for (const mesa of mesasSelecionadas) {
+    await set(ref(db, `reservas/${mesa}`), {
+      aluno,
+      turma,
+      nome,
+      cadeirasExtras,
+      valorTotal,
+      mesasSelecionadas,
+      horario: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      data: agora.toLocaleDateString('pt-BR')
+    });
+  }
+
+  mostrarModalPix(valorTotal, aluno, turma, nome, cadeirasExtras, mesasSelecionadas);
+
+  selecionadas.clear();
+  form.reset();
+  atualizarTotal();
+});
+
+
+
+
+
+    atualizarTotal();
+
+    let mensagemWhatsApp = "";
+window.mostrarModalPix = function(valor, aluno, turma, nome, cadeirasExtras, mesasSelecionadas) {
+      document.getElementById("pixValor").innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
+      mensagemWhatsApp = `Olá!%0AGostaria de confirmar a reserva para o evento Traços Culturais.%0A%0AAluno: ${aluno}%0ATurma: ${turma}%0AResponsável: ${nome}%0AMesas: ${mesasSelecionadas.join(", ")}%0ACadeiras Extras: ${cadeirasExtras}%0AValor Total: R$ ${valor.toFixed(2).replace('.', ',')}`;
+document.getElementById("pixModal").style.display = "flex";
+    }
+
+    window.fecharModal = function() {
+      document.getElementById("pixModal").style.display = "none";
+    }
+
+    window.enviarWhatsapp = function() {
+  window.open(`https://wa.me/5571997249766?text=${mensagemWhatsApp}`, '_blank');
+};
+
+window.copiarChavePix = function() {
+      navigator.clipboard.writeText("45.701.401/0001-07").then(() => {
+        alert("Chave Pix copiada!");
+      });
+    }
+
+    const agora = new Date();
+const hora = agora.getHours();
+const minutos = agora.getMinutes();
+
+
+
+// Convertendo hora e minuto para minutos totais do dia
+const totalMinutos = hora * 60 + minutos;
+
+// 07:00 = 420 minutos / 15:30 = 930 minutos
+if (totalMinutos < 420 || totalMinutos >= 930) {
+  // Oculta a grid e o formulário
+  mesasContainer.style.display = "none";
+  form.style.display = "none";
+
+  // Cria e exibe mensagem de aviso
+  const aviso = document.createElement("div");
+  aviso.style.color = "white";
+  aviso.style.textAlign = "center";
+  aviso.style.marginTop = "50px";
+  aviso.style.fontSize = "1.2rem";
+  aviso.innerHTML = "⏰ O sistema de reservas funciona entre <strong>07:00 e 15:30</strong>. Tente novamente nesse horário!";
+  document.body.appendChild(aviso);
+}
+  </script>
 </html>
