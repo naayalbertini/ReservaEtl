@@ -369,11 +369,7 @@ const minutos = agora.getMinutes();
 
 
 
-// Convertendo hora e minuto para minutos totais do dia
-const totalMinutos = hora * 60 + minutos;
 
-// 07:00 = 420 minutos / 15:30 = 930 minutos
-if (totalMinutos < 420 || totalMinutos >= 930) {
   // Oculta a grid e o formulário
   mesasContainer.style.display = "none";
   form.style.display = "none";
