@@ -378,7 +378,7 @@ const minutos = agora.getMinutes();
 const totalMinutos = hora * 60 + minutos;
 
 // 07:00 = 420 minutos / 15:30 = 930 minutos
-if (totalMinutos < 0 || totalMinutos >= 0) {
+if (totalMinutos < 420 || totalMinutos >= 1080) {
 
 
   // Oculta a grid e o formulário
