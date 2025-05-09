@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reserva de Mesas - Traços Culturais</title>
   <style>
+  
+  @media (max-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr); /* ou 2 se quiser maior */
+  }
+}
+  
 @media (max-width: 480px) { body { padding: 10px; } form { padding: 15px; } .grid { gap: 4px; } }
 .modal {
   display: none;
